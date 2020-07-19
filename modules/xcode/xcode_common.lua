@@ -41,6 +41,7 @@
 			[".icns"] = "Resources",
 			[".s"] = "Sources",
 			[".S"] = "Sources",
+            [".metal"] = "Sources",
 		}
 		if node.isResource then
 			return "Resources"
@@ -140,6 +141,7 @@
 			[".bmp"]       = "image.bmp",
 			[".wav"]       = "audio.wav",
 			[".xcassets"]  = "folder.assetcatalog",
+            [".metal"]     = "sourcecode.metal",
 
 		}
 		return types[path.getextension(node.path)] or "text"
