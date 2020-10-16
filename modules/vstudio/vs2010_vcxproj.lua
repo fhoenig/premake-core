@@ -267,7 +267,8 @@
 			m.nmakeRebuildCommands,
 			m.nmakeCleanCommands,
 			m.nmakePreprocessorDefinitions,
-			m.nmakeIncludeDirs
+			m.nmakeIncludeDirs,
+			m.additionalCompileOptions
 		}
 	end
 
@@ -382,7 +383,8 @@
 			m.compileAs,
 			m.callingConvention,
 			m.languageStandard,
-			m.structMemberAlignment,
+			m.conformanceMode,
+			m.structMemberAlignment
 		}
 
 		if cfg.kind == p.STATICLIB then
@@ -1397,7 +1399,7 @@
 		-- check to see if this project uses an external toolset. If so, let the
 		-- toolset define the format of the links
 		local toolset = config.toolset(cfg)
-		if toolset then
+		if cfg.system ~= premake.WINDOWS and toolset then
 			links = toolset.getlinks(cfg, not explicit)
 		else
 			links = vstudio.getLinks(cfg, explicit)
@@ -1474,6 +1476,18 @@
 		end
 	end
 
+	function m.conformanceMode(cfg)
+		if _ACTION >= "vs2017" then
+			if cfg.conformancemode ~= nil then
+				if cfg.conformancemode then
+					m.element("ConformanceMode", nil, "true")
+				else
+					m.element("ConformanceMode", nil, "false")
+				end
+			end
+		end
+	end
+
 	function m.structMemberAlignment(cfg)
 		local map = {
 			[1] = "1Byte",
@@ -1491,7 +1505,7 @@
 
 	function m.additionalCompileOptions(cfg, condition)
 		local opts = cfg.buildoptions
-		if _ACTION == "vs2015" then
+		if _ACTION == "vs2015" or vstudio.isMakefile(cfg) then
 			if (cfg.cppdialect == "C++14") then
 				table.insert(opts, "/std:c++14")
 			elseif (cfg.cppdialect == "C++17") then
@@ -2845,20 +2859,6 @@
 
 	function m.condition(cfg)
 		return m.conditionFromConfigText(vstudio.projectConfig(cfg))
-	end
-
---
--- Get the latest installed SDK 10 version from the registry.
---
-
-	function m.latestSDK10Version()
-		local arch = iif(os.is64bit(), "\\WOW6432Node\\", "\\")
-		local version = os.getWindowsRegistry("HKLM:SOFTWARE" .. arch .."Microsoft\\Microsoft SDKs\\Windows\\v10.0\\ProductVersion")
-		if version ~= nil then
-			return version .. ".0"
-		else
-			return nil
-		end
 	end
 
 
